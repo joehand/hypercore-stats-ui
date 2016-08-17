@@ -1,41 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title></title>
-  <style>
-    body {
-      font-family: monospace;
-    }
-
-    #template {
-      display: none;
-    }
-
-    .upload {
-      background-color: green;
-    }
-
-    .clearfix {
-      clear: both;
-    }
-
-    .dot {
-      border: 1px solid black;
-      width: 5px;
-      height: 5px;
-      margin: 1px;
-      float: left;
-    }
-  </style>
+  <title>Hypercore Stats UI</title>
+  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700" rel="stylesheet">
+   <link rel="stylesheet" type="text/css" href="main.css"/>
 </head>
 <body>
 <h3 id="key"></h3>
 <h4><span id="peers">Connected to 0 peers</span>
 <div id="template">
   <h3 class="name"></h3>
-  <h4><span class="overview"></span> ↓ <span class="download-speed"></span> / ↑ <span class="upload-speed"></span></h4>
+  <h5>peak: <span class="peak-speed"></span></h5>
+  <h5><span class="overview"></span> ↓ <span class="download-speed"></span> / ↑ <span class="upload-speed"></span></h4>
   <div class="blocks"></div>
-  <div class="clearfix"></div>
 </div>
 <script src="bundle.js"></script>
 </body>

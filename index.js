@@ -1,9 +1,13 @@
 var speedometer = require('speedometer')
 var prettyBytes = require('pretty-bytes')
+var pixels = require('pixel-grid')
 
 var $ = document.querySelector.bind(document)
 
 module.exports = Stats
+
+var rows = Math.floor(window.innerHeight * 0.97 / 16) - 2
+var columns = Math.floor(window.innerWidth * 0.97 / 16) - 1
 
 function Stats (el, interval) {
   if (!(this instanceof Stats)) return new Stats(el, interval)
@@ -15,6 +19,9 @@ function Stats (el, interval) {
     var keys = Object.keys(self.feeds)
     for (var i = 0; i < keys.length; i++) {
       var st = self.feeds[keys[i]]
+      var down = st.downloadSpeed()
+      if (down > st.peakDown) st.peakDown = down
+      self.$$(keys[i], '.peak-speed').innerText = prettyBytes(st.peakDown) + '/s'
       self.$$(keys[i], '.upload-speed').innerText = prettyBytes(st.uploadSpeed()) + '/s'
       self.$$(keys[i], '.download-speed').innerText = prettyBytes(st.downloadSpeed()) + '/s'
     }
@@ -40,12 +47,13 @@ Stats.prototype._get = function (name) {
     }
 
     self.el.appendChild(div)
-
     st = self.feeds[name] = {
       blocks: 0,
+      peakDown: 0,
       uploadSpeed: speedometer(),
       downloadSpeed: speedometer(),
-      div: div
+      div: div,
+      gridData: []
     }
   }
 
@@ -79,8 +87,12 @@ Stats.prototype.onpeerupdate = function (data) {
 }
 
 Stats.prototype.ondownload = function (data) {
-  this._get(data.name).downloadSpeed(data.bytes)
-  this.$$(data.name, '.block-' + data.index).style.backgroundColor = 'gray'
+  var st = this._get(data.name)
+  var speed = st.downloadSpeed(data.bytes)
+
+  if (st.grid && data.index <= st.gridData.length) {
+    st.gridData[data.index] = [.207,.705,.310]
+  }
 }
 
 Stats.prototype.onupload = function (data) {
@@ -94,13 +106,40 @@ Stats.prototype.onupload = function (data) {
 
 Stats.prototype.onfeed = function (data) {
   var self = this
-  var blocks = this._get(data.name).blocks = data.blocks.length
+  var st = this._get(data.name)
+  var blocks = st.blocks = data.blocks.length
   self.updateHeader(data)
 
+  if (data.name === 'metadata') return
+
   for (var i = 0; i < blocks; i++) {
-    self._appendDot(data.name, i)
-    if (data.blocks[i]) self.$$(data.name, '.block-' + i).style.backgroundColor = 'gray'
+    self._appendDot(data.name, data.blocks[i])
   }
+
+  console.log('data', st.gridData.length)
+
+  var size = 7
+  var pad = 0
+  var cols = Math.floor(window.innerWidth * 0.97 / (size + pad))
+  var rows = Math.floor(blocks/cols) + 1
+
+  console.log('size stuff', rows, cols, blocks)
+
+  st.grid = pixels(st.gridData, {
+    root: self.$$(data.name, '.blocks'),
+    size: size,
+    padding: pad,
+    columns: cols,
+    rows: rows,
+    background: [.16,.21,.28],
+    formatted: true
+  })
+
+  st.grid.canvas.style.marginLeft = (window.innerWidth * 0.03) / 2 + 'px'
+
+  st.grid.frame(function () {
+    st.grid.update(st.gridData)
+  })
 }
 
 Stats.prototype.onupdate = function (data) {
@@ -109,13 +148,11 @@ Stats.prototype.onupdate = function (data) {
 
   for (var i = self._get(data.name).blocks; i < data.blocks.length; i++) {
     self._get(data.name).blocks++
-    self._appendDot(data.name, i)
-    if (data.blocks[i]) self.$$(data.name, '.block-' + i).style.backgroundColor = 'gray'
+    self._appendDot(data.name, data.blocks[i])
   }
 }
 
-Stats.prototype._appendDot = function (name, i) {
-  var div = document.createElement('div')
-  div.className = 'dot block-' + i
-  this.$$(name, '.blocks').appendChild(div)
+Stats.prototype._appendDot = function (name, downloaded) {
+  if (downloaded) this._get(name).gridData.push([.207,.705,.310])
+  else this._get(name).gridData.push([.91,.92,.93])
 }

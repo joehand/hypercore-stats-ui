@@ -11,6 +11,7 @@ var cors = corsify({
 module.exports = function (archive) {
   return cors(function (req, res) {
     if (req.url === '/') return file('index.html', 'text/html', res)
+    if (req.url === '/main.css') return file('main.css', 'text/css', res)
     if (req.url === '/bundle.js') return file('bundle.js', 'text/javascript', res)
     server(archive, res)
   })
