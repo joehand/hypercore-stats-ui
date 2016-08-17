@@ -1,0 +1,29 @@
+ /*
+ * node-sass magic importer. features/how to:
+ * https://github.com/maoberlehner/node-sass-magic-importer
+ */
+
+ @import "~dat-design";
+ @import "~dat-design/scss/variables/colors.scss";
+
+body {
+  font-family: 'Source Sans Pro', 'Helvetica Neue', 'Lucida Grande', Arial, sans-serif;
+  // transition: 0.3s all;
+}
+
+#template {
+  display: none;
+}
+
+#metadata {
+  display:none;
+}
+
+.blocks {
+  background-color: $color-neutral;
+
+  canvas {
+    background-color: $color-neutral;
+    padding:15px 0;
+  }
+}
